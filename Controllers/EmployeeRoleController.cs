@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Organisation_Hierarchy_System.Core.Models;
 using Organisation_Hierarchy_System.Core.Repositories;
 using Organisation_Hierarchy_System.Core.Specifications;
@@ -37,34 +38,59 @@ namespace Organisation_Hierarchy_System.Controllers
         {
             var employeeRole = await _employeeRole.GetEmployeeRoleByIdAsync(id);
 
-            if (employeeRole == null) return NotFound();
+            if (employeeRole == null) return NotFound(new { errorMessage = "Sorry, the employee role could not be found." });
             return Ok(employeeRole);
         }
 
         [HttpPost("add")]
         public async Task<ActionResult<EmployeeRole>> AddEmployeeRole(EmployeeRoleVM employeeRole)
         {
+            var employeeRoles = await _employeeRole.GetEmployeeRoleListAsync();
+
+            foreach(var role in employeeRoles)
+            {
+                if (role.Name == employeeRole.Name) return BadRequest(new { errorMessage = "Sorry, this name has already been used on the database." });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(validationErrors);
+            }
+
             var result = await _employeeRole.AddEmployeeRoleAsync(new EmployeeRole
             {
                 Name = employeeRole.Name,
                 Description = employeeRole.Description,
             });
             if (result == true) return Ok(result);
-            return BadRequest();
+            return BadRequest(new { errorMessage = "There was a problem adding the employee role." });
         }
 
         [HttpPut("update/{id}")]
         public async Task<ActionResult<EmployeeRole>> UpdateEmployeeRole(EmployeeRole newEmployeeRole, int id)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(validationErrors);
+            }
+
             var employeeRole = await _employeeRole.GetEmployeeRoleByIdAsync(id);
-            if (employeeRole == null) return NotFound();
+            if (employeeRole == null) return NotFound(new { errorMessage = "Sorry, the employee role could not be found." });
 
             employeeRole.Name = newEmployeeRole.Name;
             employeeRole.Description = newEmployeeRole.Description;
 
             var result = await _employeeRole.UpdateEmployeeRoleByAsync(employeeRole);
             if (result == true) return Ok(employeeRole);
-            return BadRequest();
+            return BadRequest(new { errorMessage = "There was a problem updating the employee role." });
         }
 
         [HttpDelete("delete/{id}")]
@@ -72,7 +98,7 @@ namespace Organisation_Hierarchy_System.Controllers
         {
             var result = await _employeeRole.DeleteEmployeeRoleAsync(id);
             if (result == true) return Ok();
-            return BadRequest();
+            return BadRequest(new { errorMessage = "Sorry, the employee role could not be found." });
         }
     }
 }

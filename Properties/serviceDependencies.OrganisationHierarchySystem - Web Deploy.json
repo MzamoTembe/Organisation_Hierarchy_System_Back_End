@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/organisation-hierarchy-systemdbserver/databases/Organisation_Hierarchy_System_db",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:Organisation",
+      "dynamicId": null
+    }
+  }
+}

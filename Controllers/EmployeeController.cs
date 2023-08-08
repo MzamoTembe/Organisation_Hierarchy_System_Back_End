@@ -36,13 +36,23 @@ namespace Organisation_Hierarchy_System.Controllers
         public async Task<ActionResult<Employee>> GetEmployee(int id)
         {
             var employee = await _employeeRepo.GetEmployeeByIdAsync(id);
-            if (employee == null) return NotFound();
+            if (employee == null) return NotFound(new { errorMessage = "Sorry, the employee could not be found." });
+
             return Ok(employee);
         }
 
         [HttpPost("add")]
         public async Task<ActionResult<Employee>> AddEmployee(EmployeeVM employee)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(validationErrors);
+            }
+
             Employee newEmployee = new Employee
             {
                 EmployeeNum = employee.EmployeeNum,
@@ -60,16 +70,24 @@ namespace Organisation_Hierarchy_System.Controllers
 
             var result = await _employeeRepo.AddEmployeeAsync(newEmployee);
             if (result) return Ok(result);
-            return BadRequest();
-
+            return BadRequest(new { errorMessage = "There was a problem adding the employee." });
         }
 
         [HttpPut("update/{id}")]
         public async Task<ActionResult<Employee>> UpdateEmployee(int id, EmployeeVM newEmployee)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(validationErrors);
+            }
+
             if (newEmployee.ManagerId == id) return BadRequest();
             var employee = await _employeeRepo.GetEmployeeByIdAsync(id);
-            if (employee == null) return NotFound();
+            if (employee == null) return NotFound(new { errorMessage = "Sorry, the employee could not be found." });
 
             employee.Name = newEmployee.Name;
             employee.Surname = newEmployee.Surname;
@@ -81,7 +99,8 @@ namespace Organisation_Hierarchy_System.Controllers
 
             var result = await _employeeRepo.UpdateEmployeeByAsync(employee);
             if (result == true) return Ok(employee);
-            return BadRequest();
+            return BadRequest(new { errorMessage = "There was a problem updating the employee." });
+
         }
 
         [HttpDelete("delete/{id}")]
@@ -89,7 +108,7 @@ namespace Organisation_Hierarchy_System.Controllers
         {
             var result = await _employeeRepo.DeleteEmployeeAsync(id);
             if (result == true) return Ok();
-            return BadRequest();
+            return BadRequest(new { errorMessage = "There was a problem deleting the employee." });
         }
 
         //[HttpGet("tree")]

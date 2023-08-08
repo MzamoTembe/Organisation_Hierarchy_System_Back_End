@@ -14,15 +14,16 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<SystemContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Organisation"));
 });
+
 builder.Services.AddScoped<IEmployeeRepo, EmployeeRepo>();
 builder.Services.AddScoped<IEmployeeRoleRepo, EmployeeRoleRepo>();
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://organisation-hierarchy-system.azurewebsites.net"); 
     });
 });
 
